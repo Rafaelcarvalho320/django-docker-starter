@@ -35,6 +35,11 @@ RUN pip install --no-index --find-links=/wheels -r requirements.txt \
 
 COPY --chown=app:app . .
 
+# Belt and braces: the repository also carries the executable bit, but a
+# clone made on a filesystem that does not track it would otherwise produce
+# an image that dies at startup with "permission denied".
+RUN chmod +x entrypoint.sh
+
 # Static files are collected at build time, not at boot: it is the same result
 # every time, so doing it per container start would only slow every deploy and
 # risk two replicas disagreeing. The key here is a build-time placeholder;
