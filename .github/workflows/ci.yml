@@ -85,7 +85,9 @@ jobs:
         run: docker build -t starter:ci .
 
       - name: It runs as a non-root user
-        run: test "$(docker run --rm starter:ci id -un)" = "app"
+        # --entrypoint, or entrypoint.sh intercepts the command and tries to
+        # migrate against a database that is not there.
+        run: test "$(docker run --rm --entrypoint id starter:ci -un)" = "app"
 
       - name: Static files were collected at build time
         run: |
