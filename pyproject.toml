@@ -1,0 +1,53 @@
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+# The settings module refuses to boot without a secret key when DEBUG is false,
+# which is the behaviour worth having in production and an obstacle in a test
+# run. Supplying a throwaway one here keeps the guard intact and still lets
+# `pytest` work on a clean checkout with nothing exported. DEBUG stays false so
+# the suite exercises the production configuration, not a softer one.
+env = [
+    "DJANGO_SECRET_KEY=test-only-key-never-used-to-serve",
+    "DJANGO_DEBUG=false",
+    "DJANGO_SECURE_SSL_REDIRECT=false",
+    # Off because the suite has not run collectstatic; the Docker job in
+    # CI exercises the manifest path against a real built image.
+    "DJANGO_STATIC_MANIFEST=false",
+]
+
+[tool.coverage.run]
+source = ["config", "core", "items"]
+omit = ["*/migrations/*", "*/asgi.py", "*/wsgi.py"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "DJ", "S"]
+# RUF012 wants ClassVar on every mutable class attribute. Django and DRF are
+# built out of that pattern (list_display, fields, ordering_fields), where the
+# list is declarative configuration read by the framework and never mutated.
+ignore = ["RUF012"]
+
+[tool.ruff.lint.per-file-ignores]
+# S101: asserts are what tests are made of.
+# S105/S106: test credentials are hardcoded by definition; flagging them
+# trains people to ignore the rule where it actually matters.
+"tests/*" = ["S101", "S105", "S106"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+files = ["config", "core", "items"]
+exclude = ["migrations"]
+
+[[tool.mypy.overrides]]
+module = ["django_filters.*", "whitenoise.*", "sentry_sdk.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings_typecheck"

@@ -1,0 +1,16 @@
+# Picked up automatically by `docker compose up`, and only meant for local work:
+# the source tree is mounted so edits are live, and the dev server replaces
+# gunicorn so it reloads. Deployments use `docker compose -f docker-compose.yml`
+# and never see this file.
+services:
+  web:
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DJANGO_DEBUG: "true"
+      DJANGO_LOG_FORMAT: console
+      DJANGO_STATIC_MANIFEST: "false"
+    volumes:
+      - .:/app
+      # Keeps the image's collected static files from being hidden by the
+      # mount, which would otherwise break the admin's CSS locally.
+      - /app/staticfiles

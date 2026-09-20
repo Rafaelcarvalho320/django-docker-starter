@@ -1,0 +1,6 @@
+* text=auto eol=lf
+# Must stay LF even on Windows: it is the container's entrypoint and CRLF
+# makes the shebang unusable inside Linux.
+entrypoint.sh text eol=lf
+*.png binary
+*.jpg binary
